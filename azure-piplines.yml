@@ -1,0 +1,95 @@
+# azure-pipelines.yml  (Variant A - RG/service connection; Ubuntu hosted)
+# Prereqs:
+# 1) Create an Azure service connection named in AZURE_SERVICE_CONNECTION.
+# 2) Ensure both apps are Linux "Code" Web Apps (F1 ok).
+# 3) run.sh exists at repo root and starts the app (uses $PORT).
+
+trigger:
+- main
+
+variables:
+  PYTHON_VERSION: '3.10'
+  PACKAGE_ZIP: 'app.zip'
+
+  # Azure service connection (ARM)
+  AZURE_SERVICE_CONNECTION: 'sc-azure-calculator'   # <-- change to your service connection name
+
+  # Dev app
+  DEV_RG: 'rg-dev'                           # <-- change
+  DEV_APP: 'calc-dev-web'                    # <-- change
+
+  # Prod app
+  PROD_RG: 'rg-prod'                         # <-- change
+  PROD_APP: 'calc-prod-web'                  # <-- change
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+  clean: true
+
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(PYTHON_VERSION)'
+
+- script: |
+    python3 --version
+    python3 -m venv .venv
+    . .venv/bin/activate
+    python -m pip install --upgrade pip wheel
+    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    pip install pytest pytest-cov
+  displayName: Setup venv & install deps
+
+- script: |
+    . .venv/bin/activate
+    rm -rf test-results || true
+    mkdir -p test-results
+    python -m pytest -q tests --junitxml=test-results/pytest.xml --cov=src --cov-report=xml
+  displayName: Run pytest (with coverage)
+
+- task: PublishTestResults@2
+  inputs:
+    testResultsFormat: 'JUnit'
+    testResultsFiles: 'test-results/pytest.xml'
+    failTaskOnFailedTests: true
+  displayName: Publish tests
+
+# Package (Linux-friendly zip)
+- script: |
+    rm -f $(PACKAGE_ZIP)
+    rm -rf _pkg
+    mkdir -p _pkg/src
+    cp -R src/* _pkg/src/ 2>/dev/null || true
+    [ -f run.sh ] && cp run.sh _pkg/
+    [ -f run.bat ] && cp run.bat _pkg/
+    [ -f requirements.txt ] && cp requirements.txt _pkg/
+    [ -f pyproject.toml ] && cp pyproject.toml _pkg/
+    (cd _pkg && zip -r ../$(PACKAGE_ZIP) .)
+    rm -rf _pkg
+  displayName: Zip app
+
+# ---- Deploy to DEV (RG/service connection) ----
+- task: AzureWebApp@1
+  displayName: Deploy to DEV (RG/service connection)
+  inputs:
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+    appType: 'webAppLinux'
+    appName: '$(DEV_APP)'
+    resourceGroupName: '$(DEV_RG)'
+    package: '$(Build.SourcesDirectory)/$(PACKAGE_ZIP)'
+    runtimeStack: 'PYTHON|3.10'             # optional; harmless for code startup
+    startupCommand: 'bash run.sh'            # run.sh must bootstrap gunicorn on $PORT
+
+# ---- Deploy to PROD (RG/service connection) ----
+- task: AzureWebApp@1
+  displayName: Deploy to PROD (RG/service connection)
+  inputs:
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+    appType: 'webAppLinux'
+    appName: '$(PROD_APP)'
+    resourceGroupName: '$(PROD_RG)'
+    package: '$(Build.SourcesDirectory)/$(PACKAGE_ZIP)'
+    runtimeStack: 'PYTHON|3.10'
+    startupCommand: 'bash run.sh'
