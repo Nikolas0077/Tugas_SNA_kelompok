@@ -22,25 +22,25 @@ Pastikan sudah menginstall:
 
    <img width="528" height="95" alt="image" src="https://github.com/user-attachments/assets/a0be520a-0dc0-4c6e-84d1-4b445192dc5e" />
 
-4. buka Docker Desktop lalu pastikan dalam keadaan running
+3. buka Docker Desktop lalu pastikan dalam keadaan running
 
-5. Jalankan perintah berikut untuk membuat Docker Image:
+4. Jalankan perintah berikut untuk membuat Docker Image:
     "docker build -t tugas-sna-app ."
    <img width="2536" height="930" alt="image" src="https://github.com/user-attachments/assets/f39749bd-0403-4c9c-9d65-c85f1a43a75a" />
 
-6. Jalankan container dengan command berikut:
+5. Jalankan container dengan command berikut:
     "docker run -p 8000:8000 tugas-sna-app"
    <img width="1198" height="177" alt="image" src="https://github.com/user-attachments/assets/fe2d2b22-366e-4f95-818a-90cee83b5b3e" />
 
-7. Buka browser lalu akses:
+6. Buka browser lalu akses:
     "http://localhost:8000"
-<img width="1191" height="344" alt="image" src="https://github.com/user-attachments/assets/7310ff47-3af7-467a-84d0-4d47781d7c90" />
+   <img width="1191" height="344" alt="image" src="https://github.com/user-attachments/assets/7310ff47-3af7-467a-84d0-4d47781d7c90" />
 
-8. program sudah siap untuk digunakan
+7. program sudah siap untuk digunakan
 
 ### 3. cara menggunakan program:
 1. ketik hitung" an yang mau anda lakukan
-<img width="807" height="406" alt="image" src="https://github.com/user-attachments/assets/00cdd36f-4e13-45e1-959f-08799d6fba36" />
+   <img width="807" height="406" alt="image" src="https://github.com/user-attachments/assets/00cdd36f-4e13-45e1-959f-08799d6fba36" />
 
 2. maka output akan berupa hasil dari hitung hitungan yang anda inginkan
    <img width="788" height="283" alt="image" src="https://github.com/user-attachments/assets/517f1102-33ca-4ee8-8f6a-c3e5c215d39b" />
