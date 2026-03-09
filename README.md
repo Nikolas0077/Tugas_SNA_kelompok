@@ -1,4 +1,4 @@
-<img width="1120" height="232" alt="image" src="https://github.com/user-attachments/assets/12f37442-baa2-4908-b010-c15fb6e31df5" /># Tugas_SNA_kelompok
+# Tugas_SNA_kelompok
 
 ## Cara Menjalankan Project
 
