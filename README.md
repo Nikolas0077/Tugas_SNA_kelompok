@@ -13,8 +13,8 @@ Pastikan sudah menginstall:
 
 ### 2. Step by Step menjalankan programnya:
 1. buka CMD pada device lalu ketik Clone repository ini ke komputer kamu:
-   git clone https://github.com/Nikolas0077/Tugas_SNA_kelompok.git
-  (folder akan ter install pada komputer kamu)
+git clone https://github.com/Nikolas0077/Tugas_SNA_kelompok.git
+(folder akan ter install pada komputer kamu)
    
 2. Masuk ke folder project:
    cd Tugas_SNA_kelompok
