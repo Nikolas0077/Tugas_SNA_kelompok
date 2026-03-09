@@ -1,6 +1,6 @@
 # Tugas_SNA_kelompok# DevOps Calculator
 
-Web calculator built using Flask and deployed using DevOps.
+Web calculator built using Flask and deployed using DevOps
 
 ## Features
 
