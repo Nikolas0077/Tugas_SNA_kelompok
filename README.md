@@ -19,23 +19,24 @@ Pastikan sudah menginstall:
 
 2. Masuk ke folder project:
    "cd Tugas_SNA_kelompok"
+
    <img width="528" height="95" alt="image" src="https://github.com/user-attachments/assets/a0be520a-0dc0-4c6e-84d1-4b445192dc5e" />
 
-3. buka Docker Desktop lalu pastikan dalam keadaan running
+4. buka Docker Desktop lalu pastikan dalam keadaan running
 
-4. Jalankan perintah berikut untuk membuat Docker Image:
+5. Jalankan perintah berikut untuk membuat Docker Image:
     "docker build -t tugas-sna-app ."
    <img width="2536" height="930" alt="image" src="https://github.com/user-attachments/assets/f39749bd-0403-4c9c-9d65-c85f1a43a75a" />
 
-5. Jalankan container dengan command berikut:
+6. Jalankan container dengan command berikut:
     "docker run -p 8000:8000 tugas-sna-app"
    <img width="1198" height="177" alt="image" src="https://github.com/user-attachments/assets/fe2d2b22-366e-4f95-818a-90cee83b5b3e" />
 
-6. Buka browser lalu akses:
+7. Buka browser lalu akses:
     "http://localhost:8000"
 <img width="1191" height="344" alt="image" src="https://github.com/user-attachments/assets/7310ff47-3af7-467a-84d0-4d47781d7c90" />
 
-7. program sudah siap untuk digunakan
+8. program sudah siap untuk digunakan
 
 ### 3. cara menggunakan program:
 1. ketik hitung" an yang mau anda lakukan
