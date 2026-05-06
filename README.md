@@ -40,14 +40,14 @@ Pastikan sudah menginstall:
 6. Buka browser lalu akses:
 
    "http://localhost:8000"
-   <img width="1191" height="344" alt="image" src="https://github.com/user-attachments/assets/7310ff47-3af7-467a-84d0-4d47781d7c90" />
+   <img width="1909" height="1016" alt="awal" src="https://github.com/user-attachments/assets/85b853f2-cd9a-41e5-ad18-51c6bc951282" />"
 
 7. program sudah siap untuk digunakan
 
 ### 3. cara menggunakan program:
 1. ketik hitung" an yang mau anda lakukan
-   <img width="807" height="406" alt="image" src="https://github.com/user-attachments/assets/00cdd36f-4e13-45e1-959f-08799d6fba36" />
+   <img width="445" height="563" alt="2" src="https://github.com/user-attachments/assets/88742025-3763-4060-84ff-c98fb655703a" />"
 
 2. maka output akan berupa hasil dari hitung hitungan yang anda inginkan
-   <img width="788" height="283" alt="image" src="https://github.com/user-attachments/assets/517f1102-33ca-4ee8-8f6a-c3e5c215d39b" />
+   <img width="423" height="531" alt="3" src="https://github.com/user-attachments/assets/d2a1133d-9c69-4841-8591-812ba1415085" />" 
 
