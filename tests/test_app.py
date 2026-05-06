@@ -73,7 +73,7 @@ def test_natural_log_negative_raises():
 def test_get_homepage(client):
     r = client.get("/")
     assert r.status_code == 200
-    assert b"Core Calculation Engine" in r.data
+    assert b"PIXEL CALC" in r.data
 
 def test_http_add(client):
     r = client.post("/", data={"a": "10", "op": "add", "b": "5"})
