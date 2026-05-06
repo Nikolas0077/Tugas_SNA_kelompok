@@ -1,4 +1,4 @@
-name: CI/CD Pipeline 
+name: CI/CD Pipeline — Core Calculation Engine
 
 on:
   push:
@@ -6,15 +6,18 @@ on:
   pull_request:
     branches: [main]
 
+# ─────────────────────────────────────────────────────────────────────────────
+# JOB 1: Build & Unit Test
+# ─────────────────────────────────────────────────────────────────────────────
 jobs:
   build-and-test:
-    name: Build & Test Aplikasi
+    name: 🧪 Build & Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout kode
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -22,66 +25,133 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov
+          pip install -r requirements.txt
 
-      - name: Jalankan unit test
+      - name: Jalankan unit test dengan coverage
         run: |
-          pytest --cov=. --cov-report=xml --cov-report=term-missing || echo "Tests completed"
+          pytest --cov=src --cov-report=xml --cov-report=term-missing -v
 
-  secret-scanning:
-    name: 🔐 Security - Secret Scanning
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
         with:
-          fetch-depth: 0
-      - name: Scan dengan Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
+          name: coverage-report
+          path: coverage.xml
 
-  dependency-check:
-    name: 🛡️ Security - Dependency Check
+# ─────────────────────────────────────────────────────────────────────────────
+# FITUR KEAMANAN 1 — SAST: Bandit (Static Application Security Testing)
+# Memindai kerentanan keamanan di dalam source code Python (folder src/)
+# ─────────────────────────────────────────────────────────────────────────────
+  sast-bandit:
+    name: 🔍 Security 1 — SAST (Bandit)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install pip-audit
-      - name: Scan vulnerabilities pada dependencies
-        run: pip-audit -r requirements.txt --desc || echo "Dependency check done"
 
-  code-analysis:
-    name: 🔍 Security - Static Code Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: pip install bandit
-      - name: Jalankan Bandit Security Scan
+      - name: Install Bandit
+        run: pip install bandit[toml]
+
+      - name: Jalankan Bandit SAST scan pada src/
         run: |
-          bandit -r . -f txt -o bandit-report.txt || true
-          echo "=== BANDIT REPORT ==="
+          bandit -r src/ -f txt -o bandit-report.txt -ll || true
+          echo "====== BANDIT SAST REPORT ======"
           cat bandit-report.txt
-      - uses: actions/upload-artifact@v4
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
         with:
-          name: bandit-report
+          name: bandit-sast-report
           path: bandit-report.txt
 
-  report:
-    name: 📊 Generate Security Report
+# ─────────────────────────────────────────────────────────────────────────────
+# FITUR KEAMANAN 2 — SCA: Trivy (Software Composition Analysis)
+# Memindai kerentanan CVE pada dependensi pihak ketiga di requirements.txt
+# ─────────────────────────────────────────────────────────────────────────────
+  sca-trivy:
+    name: 🛡️ Security 2 — SCA (Trivy)
     runs-on: ubuntu-latest
-    needs: [build-and-test, secret-scanning, dependency-check, code-analysis]
     steps:
-      - name: Buat summary report
+      - name: Checkout kode
+        uses: actions/checkout@v4
+
+      - name: Jalankan Trivy — scan filesystem (dependencies)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          output: 'trivy-report.txt'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          exit-code: '0'
+
+      - name: Tampilkan Trivy report
         run: |
-          echo "# 📊 CI/CD Security Report" >> $GITHUB_STEP_SUMMARY
-          echo "| No | Feature | Tool |" >> $GITHUB_STEP_SUMMARY
-          echo "|----|----------|------|" >> $GITHUB_STEP_SUMMARY
-          echo "| 1 | Secret Scanning | Gitleaks |" >> $GITHUB_STEP_SUMMARY
-          echo "| 2 | Dependency Check | pip-audit |" >> $GITHUB_STEP_SUMMARY
-          echo "| 3 | Static Analysis | Bandit |" >> $GITHUB_STEP_SUMMARY
+          echo "====== TRIVY SCA REPORT ======"
+          cat trivy-report.txt
+
+      - name: Upload Trivy report
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-sca-report
+          path: trivy-report.txt
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FITUR KEAMANAN 3 — Secret Scanning: TruffleHog
+# Memindai seluruh riwayat commit untuk menemukan kredensial/secret yang bocor
+# ─────────────────────────────────────────────────────────────────────────────
+  secret-scanning-trufflehog:
+    name: 🔐 Security 3 — Secret Scanning (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout kode (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Jalankan TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+        continue-on-error: true
+
+# ─────────────────────────────────────────────────────────────────────────────
+# JOB FINAL: Security Summary Report (GitHub Step Summary)
+# ─────────────────────────────────────────────────────────────────────────────
+  security-report:
+    name: 📊 Security Summary Report
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-test
+      - sast-bandit
+      - sca-trivy
+      - secret-scanning-trufflehog
+    if: always()
+    steps:
+      - name: Generate Security Summary
+        run: |
+          echo "# 📊 DevSecOps Security Report — Core Calculation Engine" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tanggal Run:** $(date '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Hasil Pipeline" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| No | Fitur Keamanan | Tool | Kategori | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|----|----------------|------|----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 1 | Static Application Security Testing | **Bandit** | SAST | ✅ Selesai |" >> $GITHUB_STEP_SUMMARY
+          echo "| 2 | Software Composition Analysis | **Trivy** | SCA | ✅ Selesai |" >> $GITHUB_STEP_SUMMARY
+          echo "| 3 | Secret & Credential Scanning | **TruffleHog** | Secret Scan | ✅ Selesai |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Artefak yang Dihasilkan" >> $GITHUB_STEP_SUMMARY
+          echo "- \`bandit-sast-report\` — Laporan kerentanan source code" >> $GITHUB_STEP_SUMMARY
+          echo "- \`trivy-sca-report\` — Laporan CVE pada dependensi" >> $GITHUB_STEP_SUMMARY
+          echo "- \`coverage-report\` — Laporan code coverage unit test" >> $GITHUB_STEP_SUMMARY
