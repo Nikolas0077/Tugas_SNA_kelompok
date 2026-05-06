@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>8-Bit Calculator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #7b8fa1;
+      background-image:
+        linear-gradient(45deg, #6e8192 25%, transparent 25%),
+        linear-gradient(-45deg, #6e8192 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #6e8192 75%),
+        linear-gradient(-45deg, transparent 75%, #6e8192 75%);
+      background-size: 8px 8px;
+      background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .calc-shell {
+      width: 320px;
+      background: #c8b89a;
+      padding: 20px 18px 24px;
+      box-shadow:
+        0 0 0 3px #5a4a3a,
+        inset 3px 3px 0 0 #e8d8bc,
+        inset -3px -3px 0 0 #9a8a72,
+        6px 6px 0 0 #3a2a1a;
+    }
+
+    .brand {
+      font-size: 6px;
+      color: #5a4a3a;
+      letter-spacing: 2px;
+      text-align: center;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+
+    .display-frame {
+      position: relative;
+      background: #9bac35;
+      padding: 12px 14px 10px;
+      margin-bottom: 18px;
+      box-shadow:
+        inset 3px 3px 0 0 #6a7820,
+        inset -2px -2px 0 0 #c4d44a,
+        0 0 0 3px #5a4a3a;
+    }
+
+    .display-frame::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+      background-size: 4px 4px;
+      pointer-events: none;
+    }
+
+    .display-expr {
+      font-size: 7px;
+      color: #4a5a10;
+      text-align: right;
+      min-height: 12px;
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
+    .display-main {
+      font-size: 28px;
+      color: #1a2a00;
+      text-align: right;
+      letter-spacing: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .btn {
+      height: 56px;
+      border: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 13px;
+      cursor: pointer;
+      user-select: none;
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      transition: transform 0.06s;
+      box-shadow:
+        0 0 0 2px #3a2a1a,
+        inset 2px 2px 0 0 rgba(255,255,255,0.45),
+        inset -2px -2px 0 0 rgba(0,0,0,0.25),
+        4px 4px 0 0 #3a2a1a;
+    }
+
+    .btn:hover { filter: brightness(1.08); }
+
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow:
+        0 0 0 2px #3a2a1a,
+        inset 2px 2px 0 0 rgba(0,0,0,0.2),
+        inset -2px -2px 0 0 rgba(255,255,255,0.15),
+        2px 2px 0 0 #3a2a1a;
+    }
+
+    .btn-num   { background: #d4c8aa; color: #2a1a0a; }
+    .btn-op    { background: #8878c8; color: #f0ecff; }
+    .btn-eq    { background: #58a858; color: #e8ffe8; font-size: 16px; }
+    .btn-clear { background: #c86868; color: #ffe8e8; font-size: 9px; }
+    .btn-wide  { grid-column: span 2; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.3s steps(1) 2; }
+  </style>
+</head>
+<body>
+
+<div class="calc-shell">
+  <div class="brand">★ PIXEL CALC ★</div>
+
+  <div class="display-frame" id="displayFrame">
+    <div class="display-expr" id="displayExpr">&nbsp;</div>
+    <div class="display-main" id="displayMain">0</div>
+  </div>
+
+  <div class="btn-grid">
+    <button class="btn btn-clear" onclick="clearAll()">AC</button>
+    <button class="btn btn-clear" onclick="toggleSign()">+/-</button>
+    <button class="btn btn-clear" onclick="percent()">%</button>
+    <button class="btn btn-op"   onclick="setOp('/')">÷</button>
+
+    <button class="btn btn-num" onclick="input('7')">7</button>
+    <button class="btn btn-num" onclick="input('8')">8</button>
+    <button class="btn btn-num" onclick="input('9')">9</button>
+    <button class="btn btn-op"  onclick="setOp('*')">×</button>
+
+    <button class="btn btn-num" onclick="input('4')">4</button>
+    <button class="btn btn-num" onclick="input('5')">5</button>
+    <button class="btn btn-num" onclick="input('6')">6</button>
+    <button class="btn btn-op"  onclick="setOp('-')">-</button>
+
+    <button class="btn btn-num" onclick="input('1')">1</button>
+    <button class="btn btn-num" onclick="input('2')">2</button>
+    <button class="btn btn-num" onclick="input('3')">3</button>
+    <button class="btn btn-op"  onclick="setOp('+')">+</button>
+
+    <button class="btn btn-num btn-wide" onclick="input('0')">0</button>
+    <button class="btn btn-num" onclick="inputDot()">.</button>
+    <button class="btn btn-eq"  onclick="calculate()">=</button>
+  </div>
+</div>
+
+<script>
+  let current  = '0';
+  let stored   = null;
+  let operator = null;
+  let justCalc = false;
+  let newInput = false;
+
+  const elMain  = document.getElementById('displayMain');
+  const elExpr  = document.getElementById('displayExpr');
+  const elFrame = document.getElementById('displayFrame');
+
+  function setDisplay(val) {
+    const len = String(val).replace(/[-.]/, '').length;
+    elMain.style.fontSize = len > 9 ? '16px' : len > 6 ? '22px' : '28px';
+    elMain.textContent = val;
+  }
+
+  function shakeDisplay() {
+    elFrame.classList.remove('shake');
+    void elFrame.offsetWidth;
+    elFrame.classList.add('shake');
+    setTimeout(() => elFrame.classList.remove('shake'), 400);
+  }
+
+  function input(digit) {
+    if (justCalc)      { current = digit; justCalc = false; newInput = false; }
+    else if (newInput) { current = digit; newInput = false; }
+    else               { current = current === '0' ? digit : current + digit; }
+    if (current.length > 10) current = current.slice(0, 10);
+    setDisplay(current);
+  }
+
+  function inputDot() {
+    if (justCalc || newInput) { current = '0.'; justCalc = false; newInput = false; }
+    else if (!current.includes('.')) current += '.';
+    setDisplay(current);
+  }
+
+  function setOp(op) {
+    if (operator && !newInput) calculate(true);
+    stored = parseFloat(current);
+    operator = op;
+    newInput = true;
+    justCalc = false;
+    const sym = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+    elExpr.textContent = `${stored} ${sym[op]}`;
+  }
+
+  function calculate(chained = false) {
+    if (operator === null || stored === null) return;
+    const a = stored, b = parseFloat(current);
+    let result;
+    switch (operator) {
+      case '+': result = a + b; break;
+      case '-': result = a - b; break;
+      case '*': result = a * b; break;
+      case '/':
+        if (b === 0) {
+          setDisplay('ERR');
+          shakeDisplay();
+          elExpr.textContent = '';
+          operator = null; stored = null;
+          return;
+        }
+        result = a / b;
+        break;
+    }
+    result = parseFloat(result.toPrecision(10));
+    if (!chained) {
+      const sym = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+      elExpr.textContent = `${a} ${sym[operator]} ${b} =`;
+      operator = null; stored = null; justCalc = true;
+    }
+    current = String(result);
+    setDisplay(current);
+    newInput = false;
+  }
+
+  function clearAll() {
+    current = '0'; stored = null; operator = null;
+    justCalc = false; newInput = false;
+    elExpr.textContent = ' ';
+    setDisplay('0');
+  }
+
+  function toggleSign() {
+    current = String(parseFloat(current) * -1);
+    setDisplay(current);
+  }
+
+  function percent() {
+    current = String(parseFloat(current) / 100);
+    setDisplay(current);
+  }
+
+  document.addEventListener('keydown', e => {
+    if ('0123456789'.includes(e.key)) { input(e.key); return; }
+    const map = {
+      '+': () => setOp('+'), '-': () => setOp('-'),
+      '*': () => setOp('*'), '/': () => { e.preventDefault(); setOp('/'); },
+      'Enter': () => calculate(), '=': () => calculate(),
+      'Escape': clearAll, 'Backspace': backspace, '.': inputDot, ',': inputDot
+    };
+    if (map[e.key]) map[e.key]();
+  });
+
+  function backspace() {
+    if (justCalc) return;
+    current = current.length > 1 ? current.slice(0, -1) : '0';
+    setDisplay(current);
+  }
+</script>
+</body>
+</html>
